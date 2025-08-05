@@ -30,9 +30,7 @@ if (file.exists(".env")) {
 
 # Banco de Dados
 db_path <- Sys.getenv("DENGUE_DB_PATH")
-if (db_path == "") {
-    db_path <- "data/dengue.duckdb"
-}
+
 con <- DBI::dbConnect(
     duckdb::duckdb(),
     dbdir = db_path
