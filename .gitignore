@@ -16,9 +16,9 @@ _site/
 _book/
 .quarto
 
-# HTML renderizado
-index.html
-*.html
+# HTML renderizado (comentado para GitHub Pages)
+# index.html
+# *.html
 
 # Arquivos do sistema operacional
 .DS_Store
