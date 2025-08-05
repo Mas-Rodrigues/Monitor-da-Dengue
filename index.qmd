@@ -1,0 +1,253 @@
+---
+title: "Monitor da Dengue"
+subtitle: São José do Rio Preto/SP
+author: "Marco Rodrigues"
+date: today
+date-format: "DD [de] MMMM [de] YYYY"
+categories: [análise]
+image: "image.png"
+lang: pt-br
+echo: false
+warning: false
+message: false
+title-block-banner: false
+---
+
+```{r}
+#| warning: false
+
+# Packages
+library(DBI)
+library(tidyverse)
+library(dplyr)
+library(plotly)
+library(DT)
+
+# DB Conection
+con <- DBI::dbConnect(
+    duckdb::duckdb(),
+    dbdir = "/Users/marcorodrigues/Documents/Dengue/data/dengue.duckdb"
+)
+
+# List Tables
+invisible(DBI::dbListTables(con))
+
+# Dengue Data
+dengue <- dplyr::tbl(
+    con, "dengue_sjrp"
+    ) |>
+    dplyr::mutate(
+        dt_sin_pri = as.Date(dt_sin_pri),
+        dt_notific = as.Date(dt_notific),
+        dtnot_dtsinpri = dt_notific - dt_sin_pri
+    ) |>
+    dplyr::collect()
+
+# Configurar locale para português brasileiro
+invisible(Sys.setlocale("LC_TIME", "pt_BR.UTF-8"))
+
+# Desconectar
+DBI::dbDisconnect(con)
+
+```
+
+```{r}
+#| output: false
+# Configurar locale para português brasileiro
+Sys.setlocale("LC_TIME", "pt_BR.UTF-8")
+
+# Função auxiliar para converter meses para português
+meses_pt_br <- function(data_col) {
+    mes_num <- lubridate::month(data_col)
+    factor(
+        mes_num,
+        levels = 1:12,
+        labels = c(
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        )
+    )
+}
+```
+
+```{r}
+# Cálculo das médias históricas por mês (excluindo 2025 para baseline)
+medias_historicas <- dengue |>
+    dplyr::mutate(
+        ano = lubridate::year(dt_notific),
+        mes = lubridate::month(dt_notific),
+        mes_nome = meses_pt_br(dt_notific)
+    ) |>
+    dplyr::filter(ano > 2017, ano < 2025) |>  # Histórico 2018-2024
+    dplyr::group_by(mes, mes_nome) |>
+    dplyr::summarise(
+        casos_total = dplyr::n(),
+        anos_analisados = dplyr::n_distinct(ano),
+        media_casos = round(dplyr::n() / dplyr::n_distinct(ano), 1),
+        .groups = "drop"
+    ) |>
+    dplyr::arrange(mes)
+
+# Casos de 2025 por mês
+casos_2025 <- dengue |>
+    dplyr::mutate(
+        ano = lubridate::year(dt_notific),
+        mes = lubridate::month(dt_notific),
+        mes_nome = meses_pt_br(dt_notific)
+    ) |>
+    dplyr::filter(ano == 2025) |>
+    dplyr::group_by(mes, mes_nome) |>
+    dplyr::summarise(
+        casos_2025 = dplyr::n(),
+        .groups = "drop"
+    )
+
+```
+
+<br>
+<p>Com base nos dados disponibilizados pelo pacote [microdatasus](https://github.com/rfsaldanha/microdatasus), sobre notificações de dengue no município de São José do Rio Preto/SP, no período de 01 de janeiro de 2018 a `r format(max(dengue$dt_notific[lubridate::year(dengue$dt_notific) == 2025]), "%d de %B de %Y")`, esta análise foca na sazonalidade e no monitoramento da criticidade do fenômeno:</p>
+
+```{r}
+# Tabela comparativa com indicador de alerta
+tabela_indicador <- medias_historicas |>
+    dplyr::left_join(casos_2025, by = c("mes", "mes_nome")) |>
+    dplyr::mutate(
+        casos_2025 = ifelse(is.na(casos_2025), 0, casos_2025),
+        diferenca = casos_2025 - media_casos,
+        percentual_diferenca = round(((casos_2025 / media_casos) - 1) * 100, 1),
+        status_alerta = dplyr::case_when(
+            casos_2025 >= (media_casos * 2) ~ "🚨 CRÍTICO",
+            casos_2025 >= (media_casos * 1.5) ~ "⚠️ ALTO",
+            casos_2025 >= media_casos ~ "🟡 ACIMA DA MÉDIA",
+            casos_2025 >= (media_casos * 0.5) ~ "🟢 NORMAL",
+            TRUE ~ "🔵 BAIXO"
+        )
+    ) |>
+    dplyr::select(
+        mes_nome, media_casos, casos_2025, diferenca, 
+        percentual_diferenca, status_alerta
+    )
+
+# A tabela será exibida no próximo chunk com formatação interativa
+```
+
+# Sazonalidade
+<br>
+<p>As notificações de dengue apresentam padrão sazonal, com maior concentração no Outono e Verão. O pico histórico de casos ocorre no mês de `r medias_historicas$mes_nome[which.max(medias_historicas$media_casos)]`:</p>
+
+```{r}
+# Análise de sazonalidade - Notificações por mês e ano
+dados_sazonalidade <- dengue |>
+    dplyr::mutate(
+        ano = lubridate::year(dt_notific),
+        mes = meses_pt_br(dt_notific)
+    ) |>
+    dplyr::filter(ano > 2017) |>
+    dplyr::group_by(ano, mes) |>
+    dplyr::summarise(
+        notificacoes = dplyr::n(),
+        .groups = "drop"
+    ) |>
+    dplyr::arrange(ano, mes)
+
+# Criar gráfico plotly
+plot_ly(
+    data = dados_sazonalidade,
+    x = ~mes,
+    y = ~notificacoes,
+    color = ~factor(ano),
+    type = "scatter",
+    mode = "lines+markers",
+    line = list(width = 3),
+    marker = list(size = 6),
+    hovertemplate = "<b>Ano %{fullData.name}</b><br>" %+%
+                   "Mês: %{x}<br>" %+%
+                   "Notificações: %{y}<br>" %+%
+                   "<extra></extra>"
+) |>
+layout(
+    title = list(
+        text = "Sazonalidade da Dengue por Ano<br><sub>São José do Rio Preto/SP (2018-2025)</sub>",
+        font = list(size = 16, family = "Arial", color = "#2c3e50")
+    ),
+    xaxis = list(
+        title = "Mês",
+        tickangle = -45,
+        font = list(size = 11)
+    ),
+    yaxis = list(
+        title = "Número de Notificações",
+        font = list(size = 11)
+    ),
+    legend = list(
+        title = list(text = "Ano"),
+        orientation = "h",
+        x = 0.5,
+        xanchor = "center",
+        y = -0.15
+    ),
+    hovermode = "x unified",
+    plot_bgcolor = "rgba(0,0,0,0)",
+    paper_bgcolor = "rgba(0,0,0,0)"
+) |>
+config(
+    displayModeBar = TRUE,
+    modeBarButtonsToRemove = c("pan2d", "select2d", "lasso2d", "autoScale2d"),
+    displaylogo = FALSE
+)
+
+```
+
+# Monitoramento Mensal
+<br>
+<p>A tabela a seguir apresenta a variação percentual das notificações de dengue mês a mês, estabelecendo um indicador de alerta baseado na comparação com as médias históricas mensais (período 2018-2024):</p>
+
+```{r}
+# Tabela de Criticidade
+tabela_indicador |>
+    dplyr::mutate(
+        `Média Histórica` = format(media_casos, decimal.mark = ",", big.mark = ".", nsmall = 1),
+        `Casos 2025` = format(casos_2025, decimal.mark = ",", big.mark = "."),
+        `Diferença` = ifelse(
+            diferenca >= 0, 
+            paste0("+", format(diferenca, decimal.mark = ",", big.mark = ".")), 
+            format(diferenca, decimal.mark = ",", big.mark = ".")),
+        `Variação (%)` = ifelse(
+            percentual_diferenca >= 0,
+            paste0("+", format(percentual_diferenca, decimal.mark = ",", nsmall = 1), "%"),
+            paste0(format(percentual_diferenca, decimal.mark = ",", nsmall = 1), "%")),
+        `Status` = status_alerta
+    ) |>
+    dplyr::select(
+        `Mês` = mes_nome,
+        `Média Histórica`,
+        `Casos 2025`,
+        `Diferença`,
+        `Variação (%)`,
+        `Status`
+    ) |>
+    DT::datatable(
+        options = list(
+            pageLength = 12,
+            dom = 't',
+            columnDefs = list(
+                list(
+                    className = 'dt-center', 
+                    targets = 1:5
+                )
+            )
+        ),
+        rownames = FALSE,
+        class = "cell-border stripe"
+    ) |>
+    DT::formatStyle(
+        "Status",
+        backgroundColor = DT::styleEqual(
+            c("🚨 CRÍTICO", "⚠️ ALTO", "🟡 ACIMA DA MÉDIA", 
+            "🟢 NORMAL", "🔵 BAIXO"),
+            c("#ffebee", "#fff3e0", "#fffde7", 
+            "#e8f5e8", "#e3f2fd")
+        )
+    )
+```
+
