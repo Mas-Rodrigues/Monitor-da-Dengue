@@ -1,0 +1,131 @@
+/* Estilos personalizados para o Monitor da Dengue */
+
+/* Imagem flutuante no topo direito */
+.floating-image {
+  position: absolute;
+  top: 20px;
+  right: 100px; /* Posição ideal para Quarto preview */
+  z-index: 1000;
+  width: 180px;
+  /* border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
+}
+
+/* Ajuste específico para ambiente do notebook/editor */
+.jp-RenderedHTMLCommon .floating-image,
+.jp-Notebook .floating-image,
+body.vscode-light .floating-image,
+body.vscode-dark .floating-image {
+  right: 50px; /* Posição ajustada para notebook */
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 768px) {
+  .floating-image {
+    position: relative;
+    top: 0;
+    right: 0;
+    display: block;
+    margin: 10px auto;
+    width: 150px;
+  }
+  
+  /* Ajustar títulos para mobile */
+  h1 {
+    font-size: 1.8rem;
+    text-align: center;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  /* Melhorar tabelas em mobile */
+  .dataTables_wrapper {
+    font-size: 0.85rem;
+  }
+  
+  .dataTables_wrapper .dataTables_length,
+  .dataTables_wrapper .dataTables_filter {
+    margin-bottom: 10px;
+  }
+  
+  /* Ajustar gráficos plotly */
+  .plotly {
+    width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Melhorar legibilidade do texto */
+  p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  /* Ajustar padding geral */
+  .container-fluid {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+/* Melhorias nos títulos */
+h1, h2, h3 {
+  color: #2c3e50;
+  font-family: 'Arial', sans-serif;
+}
+
+/* Estilo para links */
+a {
+  color: #3498db;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #2980b9;
+  text-decoration: underline;
+}
+
+/* Melhorias nas tabelas */
+.dataTables_wrapper {
+  font-family: 'Arial', sans-serif;
+}
+
+/* Estilo para o rodapé/cabeçalho */
+.quarto-title-block {
+  margin-bottom: 2rem;
+}
+
+/* Responsividade para tablets */
+@media (max-width: 992px) and (min-width: 769px) {
+  .floating-image {
+    width: 160px;
+    top: 20px;
+    right: 30px;
+  }
+}
+
+/* Responsividade para smartphones pequenos */
+@media (max-width: 480px) {
+  .floating-image {
+    width: 120px;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  h2 {
+    font-size: 1.3rem;
+  }
+  
+  .dataTables_wrapper {
+    font-size: 0.8rem;
+  }
+  
+  /* Forçar quebra de linha em células da tabela */
+  .dataTables_wrapper td {
+    word-wrap: break-word;
+    white-space: normal;
+  }
+}

@@ -11,7 +11,10 @@ echo: false
 warning: false
 message: false
 title-block-banner: false
+css: styles.css
 ---
+
+<img src="image.png" class="floating-image" alt="Dengue Prevention">
 
 ```{r}
 #| warning: false
@@ -54,6 +57,7 @@ invisible(Sys.setlocale("LC_TIME", "pt_BR.UTF-8"))
 DBI::dbDisconnect(con)
 
 ```
+
 
 ```{r}
 #| output: false
