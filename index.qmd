@@ -16,21 +16,18 @@ title-block-banner: false
 ```{r}
 #| warning: false
 
-# Packages
+# Pacotes
 library(DBI)
 library(tidyverse)
 library(dplyr)
 library(plotly)
 library(DT)
 
-# DB Conection
+# Banco de Dados
 con <- DBI::dbConnect(
     duckdb::duckdb(),
     dbdir = "/Users/marcorodrigues/Documents/Dengue/data/dengue.duckdb"
 )
-
-# List Tables
-invisible(DBI::dbListTables(con))
 
 # Dengue Data
 dengue <- dplyr::tbl(
@@ -53,6 +50,7 @@ DBI::dbDisconnect(con)
 
 ```{r}
 #| output: false
+
 # Configurar locale para português brasileiro
 Sys.setlocale("LC_TIME", "pt_BR.UTF-8")
 
