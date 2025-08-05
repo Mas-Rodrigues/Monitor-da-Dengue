@@ -23,10 +23,19 @@ library(dplyr)
 library(plotly)
 library(DT)
 
+# Carregar variáveis de ambiente do arquivo .env
+if (file.exists(".env")) {
+    readRenviron(".env")
+}
+
 # Banco de Dados
+db_path <- Sys.getenv("DENGUE_DB_PATH")
+if (db_path == "") {
+    db_path <- "data/dengue.duckdb"
+}
 con <- DBI::dbConnect(
     duckdb::duckdb(),
-    dbdir = "/Users/marcorodrigues/Documents/Dengue/data/dengue.duckdb"
+    dbdir = db_path
 )
 
 # Dengue Data

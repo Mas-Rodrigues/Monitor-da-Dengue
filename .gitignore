@@ -48,6 +48,7 @@ Thumbs.db
 *.backup
 
 # Configurações específicas do usuário
+.env
 .vscode/
 .idea/
 
