@@ -108,6 +108,9 @@ casos_2025 <- dengue |>
 <p>Com base nos dados disponibilizados pelo pacote [microdatasus](https://github.com/rfsaldanha/microdatasus), sobre notificações de dengue no município de São José do Rio Preto/SP, no período de 01 de janeiro de 2018 a `r format(max(dengue$dt_notific[lubridate::year(dengue$dt_notific) == 2025]), "%d de %B de %Y")`, esta análise foca na sazonalidade e no monitoramento da criticidade do fenômeno:</p>
 
 ```{r}
+#| label: tabela-indicador
+#| tbl-cap: "Indicadores de alerta por mês - Comparação 2025 vs. médias históricas (2018-2024)"
+
 # Tabela comparativa com indicador de alerta
 tabela_indicador <- medias_historicas |>
     dplyr::left_join(casos_2025, by = c("mes", "mes_nome")) |>
@@ -136,6 +139,9 @@ tabela_indicador <- medias_historicas |>
 <p>As notificações de dengue apresentam padrão sazonal, com maior concentração no Outono e Verão. O pico histórico de casos ocorre no mês de `r medias_historicas$mes_nome[which.max(medias_historicas$media_casos)]`:</p>
 
 ```{r}
+#| label: fig-sazonalidade
+#| fig-cap: "Padrão sazonal das notificações de dengue por ano em São José do Rio Preto/SP"
+
 # Análise de sazonalidade - Notificações por mês e ano
 dados_sazonalidade <- dengue |>
     dplyr::mutate(
@@ -203,6 +209,9 @@ config(
 <p>A tabela a seguir apresenta a variação percentual das notificações de dengue mês a mês, estabelecendo um indicador de alerta baseado na comparação com as médias históricas mensais (período 2018-2024):</p>
 
 ```{r}
+#| label: tbl-monitoramento
+#| tbl-cap: "Monitoramento mensal de dengue com indicadores de criticidade - 2025"
+
 # Tabela de Criticidade
 tabela_indicador |>
     dplyr::mutate(
