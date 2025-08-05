@@ -1,1 +1,72 @@
-.Rproj.user
+# RStudio
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# R
+.Rdata
+.httr-oauth
+.Renviron
+
+# Quarto
+/.quarto/
+_site/
+_book/
+.quarto
+
+# HTML renderizado
+index.html
+*.html
+
+# Arquivos do sistema operacional
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Arquivos temporários
+*~
+*.tmp
+*.temp
+.#*
+
+# Logs
+*.log
+
+# Cache
+*_cache/
+*_files/
+
+# Arquivos de backup
+*.bak
+*.backup
+
+# Configurações específicas do usuário
+.vscode/
+.idea/
+
+# Node modules (se usar extensões JS)
+node_modules/
+
+# Python (se usar scripts Python)
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+.venv/
+
+# Arquivos de configuração local
+config.local.*
+.env.local
+
+# Dados sensíveis (descomente se necessário)
+# data/
+# *.csv
+# *.xlsx
+# *.duckdb
