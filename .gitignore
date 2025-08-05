@@ -18,6 +18,7 @@ _book/
 
 # HTML renderizado (comentado para GitHub Pages)
 # index.html
+# index_files/
 # *.html
 
 # Arquivos do sistema operacional
@@ -40,7 +41,7 @@ Thumbs.db
 
 # Cache
 *_cache/
-*_files/
+# *_files/ (comentado para permitir index_files/)
 
 # Arquivos de backup
 *.bak
