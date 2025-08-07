@@ -129,3 +129,51 @@ a:hover {
     white-space: normal;
   }
 }
+
+/* Caixa de recomendação destacada */
+.recommendation-box {
+  background-color: #e8f4fd;
+  border-left: 5px solid #2196F3;
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.recommendation-box h4 {
+  color: #1976D2;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.recommendation-box p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.recommendation-box a {
+  color: #1976D2;
+  text-decoration: underline;
+}
+
+.recommendation-box a:hover {
+  color: #0d47a1;
+}
+
+/* Responsividade para a caixa de recomendação */
+@media (max-width: 768px) {
+  .recommendation-box {
+    margin: 15px 0;
+    padding: 12px;
+  }
+  
+  .recommendation-box h4 {
+    font-size: 16px;
+  }
+  
+  .recommendation-box p {
+    font-size: 14px;
+  }
+}
