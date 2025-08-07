@@ -269,3 +269,5 @@ tabela_indicador |>
     )
 ```
 
+<br>
+<p>Ações preventivas devem ser adotadas principalmente nos períodos "fora da sazonalidade". Para mais informações, acesse o site do [Ministério da Saúde](https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue).</p>
