@@ -14,7 +14,9 @@ title-block-banner: false
 css: styles.css
 ---
 
-<img src="image.png" class="floating-image" alt="Dengue Prevention">
+<a href="https://www.riopreto.sp.gov.br/campanhas-dengue" target="_blank">
+<img src="images/Faca_sua_parte_b215667ebe.jpeg" class="floating-image" alt="Dengue Prevention">
+</a>
 
 ```{r}
 #| warning: false
@@ -270,4 +272,4 @@ tabela_indicador |>
 ```
 
 <br>
-<p>Ações preventivas devem ser adotadas principalmente nos períodos "fora da sazonalidade". Para mais informações, acesse o site do [Ministério da Saúde](https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue).</p>
+<p>Ações preventivas devem ser adotadas principalmente nos períodos "fora da sazonalidade". Para mais informações, acesse os sites da [Prefeitura de São José do Rio Preto](https://www.riopreto.sp.gov.br/campanhas-dengue) e do [Ministério da Saúde](https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue).</p>
