@@ -277,3 +277,9 @@ tabela_indicador |>
 <h4>⚠️ Recomendação Importante</h4>
 <p><strong>Ações preventivas devem ser adotadas principalmente nos períodos "fora da sazonalidade".</strong> Para mais informações, acesse os sites da <a href="https://www.riopreto.sp.gov.br/campanhas-dengue" target="_blank">Prefeitura de São José do Rio Preto</a> e do <a href="https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue" target="_blank">Ministério da Saúde</a>.</p>
 </div>
+
+---
+
+## Referências
+
+**SALDANHA, Raphael de Freitas; BASTOS, Ronaldo Rocha; BARCELLOS, Christovam.** Microdatasus: pacote para download e pré-processamento de microdados do Departamento de Informática do SUS (DATASUS). *Cad. Saúde Pública*, Rio de Janeiro, v. 35, n. 9, e00032419, 2019. Disponível em: <https://doi.org/10.1590/0102-311x00032419>{target="_blank"}.
