@@ -41,7 +41,7 @@ con <- DBI::dbConnect(
     dbdir = db_path
 )
 
-# Dengue Data
+# Dengue Dados
 dengue <- dplyr::tbl(
     con, "dengue_sjrp"
     ) |>
