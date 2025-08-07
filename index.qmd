@@ -147,7 +147,7 @@ tabela_indicador <- medias_historicas |>
 
 # Sazonalidade
 <br>
-<p>As notificações de dengue apresentam padrão sazonal, com maior concentração no Outono e Verão. O pico histórico de casos ocorre no mês de `r medias_historicas$mes_nome[which.max(medias_historicas$media_casos)]`:</p>
+<p>As notificações de dengue apresentam padrão sazonal, com maior concentração no Outono e Verão. O pico histórico de casos ocorre no mês de **`r medias_historicas$mes_nome[which.max(medias_historicas$media_casos)]`**:</p>
 
 ```{r}
 #| label: fig-sazonalidade
