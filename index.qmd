@@ -27,18 +27,28 @@ library(tidyverse)
 library(dplyr)
 library(plotly)
 library(DT)
+library(sf)
+library(leaflet)
 
 # Carregar variáveis de ambiente do arquivo .env
 if (file.exists(".env")) {
     readRenviron(".env")
 }
 
-# Banco de Dados
-db_path <- Sys.getenv("DENGUE_DB_PATH")
+# Mapa da Cidade
+sjrp <- readRDS(Sys.getenv("MAPA_SJRP_PATH")) |>
+    sf::st_as_sf() |>
+    sf::st_transform(4326)
 
+# Código Nacional de Estabelecimentos de Saúde
+map <- readRDS(Sys.getenv("CNES_SJRP_PATH")) |>
+    sf::st_as_sf() |>
+    sf::st_transform(4326)
+
+# Banco de Dados
 con <- DBI::dbConnect(
     duckdb::duckdb(),
-    dbdir = db_path
+    dbdir = Sys.getenv("DENGUE_DB_PATH")
 )
 
 # Dengue Dados
@@ -74,8 +84,10 @@ meses_pt_br <- function(data_col) {
         mes_num,
         levels = 1:12,
         labels = c(
-            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+            "Janeiro", "Fevereiro", "Março", 
+            "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", 
+            "Outubro", "Novembro", "Dezembro"
         )
     )
 }
@@ -144,6 +156,7 @@ tabela_indicador <- medias_historicas |>
 
 # A tabela será exibida no próximo chunk com formatação interativa
 ```
+
 
 # Sazonalidade
 <br>
@@ -226,8 +239,14 @@ config(
 # Tabela de Criticidade
 tabela_indicador |>
     dplyr::mutate(
-        `Média Histórica` = format(media_casos, decimal.mark = ",", big.mark = ".", nsmall = 1),
-        `Casos 2025` = format(casos_2025, decimal.mark = ",", big.mark = "."),
+        `Média Histórica` = format(
+            media_casos, decimal.mark = ",", 
+            big.mark = ".", nsmall = 1
+        ),
+        `Casos 2025` = format(
+            casos_2025, decimal.mark = ",", 
+            big.mark = "."
+            ),
         `Diferença` = ifelse(
             diferenca >= 0, 
             paste0("+", format(diferenca, decimal.mark = ",", big.mark = ".")), 
@@ -271,15 +290,74 @@ tabela_indicador |>
     )
 ```
 
+
+# Incidência por Estabelecimento de Saúde
+<br>
+Em <b>2025</b>, a distribuição espacial das notificações de dengue registradas nos estabelecimentos de saúde do Muncípio pode ser observada no mapa abaixo:
 <br>
 
-<div class="recommendation-box">
-<h4>⚠️ Recomendação Importante</h4>
-<p><strong>Ações preventivas devem ser adotadas principalmente nos períodos "fora da sazonalidade".</strong> Para mais informações, acesse os sites da <a href="https://www.riopreto.sp.gov.br/campanhas-dengue" target="_blank">Prefeitura de São José do Rio Preto</a> e do <a href="https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue" target="_blank">Ministério da Saúde</a>.</p>
-</div>
+```{r}
+#| label: fig-mapa
+#| fig-cap: "Distribuição das notificações de dengue em São José do Rio Preto/SP"
+
+# Map
+
+dengue <- dengue |>
+    dplyr::filter(nu_ano == "2025") |>
+    dplyr::group_by(id_unidade) |>
+    dplyr::summarise(
+        n = dplyr::n(),
+        .groups = "drop"
+    )
+
+# Join Data
+map <- map |>
+    dplyr::left_join(
+        dengue,
+        by = c("code_cnes" = "id_unidade")
+    )
+
+map <- sf::st_intersection(map, sjrp) 
+
+map |>
+    # dplyr::filter(n != "NA") |>
+    leaflet::leaflet() |>
+        leaflet::addProviderTiles(
+            "CartoDB.Positron"
+        ) |>
+        leaflet::addPolygons(
+            data = sjrp,
+            weight = 1,
+            color = "black",
+            fillOpacity = 0.1,
+            opacity = 0.5,
+            label = ~NM_BAIRRO
+        ) |>
+        leaflet::addCircleMarkers(
+            radius = map$n * 0.003,
+            color = "red",
+            fillOpacity = 0.7,
+            stroke = TRUE,
+            weight = 1,
+            popup = ~paste(
+                "<b>Unidade:</b>", no_fantasia, "<br>",
+                "<b>Casos:</b>", n
+            )
+        )
+```
+
+<br>
 
 ---
 
 ## Referências
 
 **SALDANHA, Raphael de Freitas; BASTOS, Ronaldo Rocha; BARCELLOS, Christovam.** Microdatasus: pacote para download e pré-processamento de microdados do Departamento de Informática do SUS (DATASUS). *Cad. Saúde Pública*, Rio de Janeiro, v. 35, n. 9, e00032419, 2019. Disponível em: <https://doi.org/10.1590/0102-311x00032419>{target="_blank"}.
+
+---
+<br>
+
+<div class="recommendation-box">
+<h4>⚠️ Recomendação Importante</h4>
+<p><strong>Ações preventivas devem ser adotadas principalmente nos períodos "fora da sazonalidade".</strong> Para mais informações, acesse os sites da <a href="https://www.riopreto.sp.gov.br/campanhas-dengue" target="_blank">Prefeitura de São José do Rio Preto</a> e do <a href="https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue" target="_blank">Ministério da Saúde</a>.</p>
+</div>
