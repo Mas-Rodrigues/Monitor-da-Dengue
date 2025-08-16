@@ -198,7 +198,9 @@ plot_ly(
 layout(
     title = list(
         text = "Sazonalidade da Dengue por Ano<br><sub>São José do Rio Preto/SP (2018-2025)</sub>",
-        font = list(size = 16, family = "Arial", color = "#2c3e50")
+        font = list(
+            size = 16, family = "Arial", color = "#2c3e50"
+        )
     ),
     xaxis = list(
         title = "Mês",
@@ -222,7 +224,9 @@ layout(
 ) |>
 config(
     displayModeBar = TRUE,
-    modeBarButtonsToRemove = c("pan2d", "select2d", "lasso2d", "autoScale2d"),
+    modeBarButtonsToRemove = c(
+        "pan2d", "select2d", "lasso2d", "autoScale2d"
+    ),
     displaylogo = FALSE
 )
 
@@ -300,27 +304,24 @@ Em <b>2025</b>, a distribuição espacial das notificações de dengue registrad
 #| label: fig-mapa
 #| fig-cap: "Distribuição das notificações de dengue em São José do Rio Preto/SP"
 
-# Map
-
-dengue <- dengue |>
+# Map - Preparar dados de dengue 2025
+dengue_map <- dengue |>
     dplyr::filter(nu_ano == "2025") |>
     dplyr::group_by(id_unidade) |>
     dplyr::summarise(
-        n = dplyr::n(),
+        n_casos = dplyr::n(),
         .groups = "drop"
     )
 
-# Join Data
-map <- map |>
-    dplyr::left_join(
-        dengue,
+# Join Data - apenas estabelecimentos com casos
+map_with_cases <- map |>
+    dplyr::inner_join(
+        dengue_map,
         by = c("code_cnes" = "id_unidade")
-    )
+    ) |>
+    sf::st_intersection(sjrp) 
 
-map <- sf::st_intersection(map, sjrp) 
-
-map |>
-    # dplyr::filter(n != "NA") |>
+map_with_cases |>
     leaflet::leaflet() |>
         leaflet::addProviderTiles(
             "CartoDB.Positron"
@@ -334,14 +335,14 @@ map |>
             label = ~NM_BAIRRO
         ) |>
         leaflet::addCircleMarkers(
-            radius = map$n * 0.003,
+            radius = ~n_casos * 0.005,  # Mínimo 3px, máximo baseado em casos
             color = "red",
             fillOpacity = 0.7,
             stroke = TRUE,
             weight = 1,
             popup = ~paste(
                 "<b>Unidade:</b>", no_fantasia, "<br>",
-                "<b>Casos:</b>", n
+                "<b>Casos:</b>", n_casos
             )
         )
 ```
