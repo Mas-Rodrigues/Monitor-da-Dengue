@@ -12,7 +12,6 @@ Este repositório contém o código fonte para monitoramento de notificações d
 - **Indicadores de alerta**: Comparação com médias históricas
 - **Gráficos interativos**: Visualização de tendências sazonais
 - **Mapa interativo**: Distribuição espacial por estabelecimentos de saúde
-- **Análise geoespacial**: Localização dos casos notificados
 - **Atualização automática**: Datas e estatísticas calculadas dinamicamente
 
 ## 🛠️ Tecnologias
