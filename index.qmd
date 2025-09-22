@@ -313,13 +313,68 @@ dengue_map <- dengue |>
         .groups = "drop"
     )
 
+# Dados mensais por estabelecimento para 2025
+dengue_mensal <- dengue |>
+    dplyr::filter(nu_ano == "2025") |>
+    dplyr::mutate(
+        mes = lubridate::month(dt_notific),
+        mes_nome = meses_pt_br(dt_notific)
+    ) |>
+    dplyr::group_by(id_unidade, mes, mes_nome) |>
+    dplyr::summarise(
+        casos_mes = dplyr::n(),
+        .groups = "drop"
+    ) |>
+    dplyr::arrange(id_unidade, mes)
+
+# Função para criar tabela HTML dos dados mensais
+criar_tabela_mensal <- function(id_estabelecimento) {
+    dados_mes <- dengue_mensal |>
+        dplyr::filter(id_unidade == id_estabelecimento)
+    
+    if (nrow(dados_mes) == 0) {
+        return("<br><em>Nenhum dado mensal disponível</em>")
+    }
+    
+    tabela_html <- "<br><table style='width: 100%; font-size: 11px; margin-top: 5px; border-collapse: collapse;'>
+        <thead>
+            <tr style='background-color: #f8f9fa;'>
+                <th style='padding: 4px; border: 1px solid #ddd; text-align: left;'>Mês</th>
+                <th style='padding: 4px; border: 1px solid #ddd; text-align: center;'>Casos</th>
+            </tr>
+        </thead>
+        <tbody>"
+    
+    for (i in 1:nrow(dados_mes)) {
+        tabela_html <- paste0(tabela_html,
+            "<tr>",
+            "<td style='padding: 4px; border: 1px solid #ddd;'>", dados_mes$mes_nome[i], "</td>",
+            "<td style='padding: 4px; border: 1px solid #ddd; text-align: center;'>", dados_mes$casos_mes[i], "</td>",
+            "</tr>"
+        )
+    }
+    
+    tabela_html <- paste0(tabela_html, "</tbody></table>")
+    return(tabela_html)
+}
+
 # Join Data - apenas estabelecimentos com casos
 map_with_cases <- map |>
     dplyr::inner_join(
         dengue_map,
         by = c("code_cnes" = "id_unidade")
     ) |>
-    sf::st_intersection(sjrp) 
+    sf::st_intersection(sjrp) |>
+    dplyr::rowwise() |>
+    dplyr::mutate(
+        popup_content = paste0(
+            "<b>Unidade:</b> ", no_fantasia, "<br>",
+            "<b>Total de casos em 2025:</b> ", n_casos,
+            criar_tabela_mensal(code_cnes)
+        ),
+        label_content = paste0(no_fantasia, ": ", n_casos, " casos")
+    ) |>
+    dplyr::ungroup() 
 
 map_with_cases |>
     leaflet::leaflet() |>
@@ -340,9 +395,23 @@ map_with_cases |>
             fillOpacity = 0.7,
             stroke = TRUE,
             weight = 1,
-            popup = ~paste(
-                "<b>Unidade:</b>", no_fantasia, "<br>",
-                "<b>Casos:</b>", n_casos
+            popup = ~popup_content,
+            label = ~label_content,
+            labelOptions = labelOptions(
+                noHide = FALSE,
+                direction = "auto",
+                style = list(
+                    "background-color" = "rgba(255, 255, 255, 0.9)",
+                    "border-color" = "rgba(0, 0, 0, 0.2)",
+                    "border-radius" = "4px",
+                    "border-style" = "solid",
+                    "border-width" = "1px",
+                    "color" = "#333",
+                    "font-family" = "Arial, sans-serif",
+                    "font-size" = "12px",
+                    "font-weight" = "normal",
+                    "padding" = "4px 8px"
+                )
             )
         )
 ```
