@@ -397,7 +397,7 @@ map_with_cases |>
             weight = 1,
             popup = ~popup_content,
             label = ~label_content,
-            labelOptions = labelOptions(
+            labelOptions = leaflet::labelOptions(
                 noHide = FALSE,
                 direction = "auto",
                 style = list(
