@@ -75,6 +75,13 @@ h1, h2, h3 {
   font-family: 'Arial', sans-serif;
 }
 
+/* Justificação de parágrafos */
+p {
+  text-align: justify;
+  text-justify: inter-word;
+  line-height: 1.6;
+}
+
 /* Estilo para links */
 a {
   color: #3498db;
