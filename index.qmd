@@ -440,6 +440,24 @@ tabela_estabelecimentos <- map |>
     ) |>
     dplyr::arrange(desc(`Total de Casos`))
 
+# Calcular Z-scores para identificar criticidade estatística
+media_casos <- mean(
+    tabela_estabelecimentos$`Total de Casos`
+)
+desvio_casos <- sd(
+    tabela_estabelecimentos$`Total de Casos`
+)
+z_scores <- (
+    tabela_estabelecimentos$`Total de Casos` - media_casos
+    ) / desvio_casos
+
+# Definir pontos de corte baseados em Z-score
+# Z > 2: Crítico (top 2.5% - estatisticamente anômalo)
+# 1 < Z ≤ 2: Alto (entre 16% e 2.5%)
+# -1 ≤ Z ≤ 1: Normal (68% central da distribuição)  
+# Z < -1: Baixo (bottom 16%)
+cortes_z <- c(-1, 1, 2)
+
 # Exibir tabela
 tabela_estabelecimentos |>
     DT::datatable(
@@ -468,8 +486,8 @@ tabela_estabelecimentos |>
     DT::formatStyle(
         "Total de Casos",
         backgroundColor = DT::styleInterval(
-            cuts = c(5, 10, 20),
-            values = c("#e8f5e8", "#fff3e0", "#ffebee", "#ffcdd2")
+            cuts = media_casos + cortes_z * desvio_casos,
+            values = c("#f8d7da", "#e8f5e8", "#fff3e0", "#ffebee")
         ),
         fontWeight = "bold"
     )
