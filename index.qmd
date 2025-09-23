@@ -162,6 +162,10 @@ tabela_indicador <- medias_historicas |>
 <br>
 <p>As notificações de dengue apresentam padrão sazonal, com maior concentração no Outono e Verão. O pico histórico de casos ocorre no mês de **`r medias_historicas$mes_nome[which.max(medias_historicas$media_casos)]`**:</p>
 
+::: {.panel-tabset}
+
+## Padrão Sazonal
+
 ```{r}
 #| label: fig-sazonalidade
 #| fig-cap: "Padrão sazonal das notificações de dengue por ano em São José do Rio Preto/SP"
@@ -231,6 +235,294 @@ config(
 )
 
 ```
+
+## Análise Estatística
+
+```{r}
+#| label: analise-tendencia-sazonalidade
+#| warning: false
+library(forecast)
+library(trend)
+
+# Função para análise completa de tendência e sazonalidade
+analisar_tendencia_sazonalidade <- function(dados) {
+    
+    # 1. Preparar série temporal mensal
+    ts_data <- dados |>
+        dplyr::filter(lubridate::year(dt_notific) >= 2018) |>
+        dplyr::mutate(ano_mes = lubridate::floor_date(dt_notific, "month")) |>
+        dplyr::count(ano_mes) |>
+        tidyr::complete(
+            ano_mes = seq(min(ano_mes), max(ano_mes), by = "month"), 
+            fill = list(n = 0)
+        )
+    
+    # 2. Criar série temporal
+    ts_serie <- ts(
+        ts_data$n, 
+        start = c(
+            lubridate::year(min(ts_data$ano_mes)), 
+            lubridate::month(min(ts_data$ano_mes))
+        ), 
+        frequency = 12
+    )
+    
+    # 3. Decomposição STL (apenas se temos dados suficientes)
+    if (length(ts_serie) >= 24) {  # Mínimo 2 anos de dados
+        decomp <- stl(ts_serie, s.window = "periodic")
+    } else {
+        decomp <- NULL
+    }
+    
+    # 4. Teste de tendência de Mann-Kendall
+    mk_resultado <- trend::mk.test(ts_serie)
+    
+    # 5. Inclinação de Sen (Sen's slope)
+    if (length(ts_serie) >= 3) {
+        sens_slope <- trend::sens.slope(ts_serie)
+    } else {
+        sens_slope <- NULL
+    }
+    
+    # 6. Índice sazonal
+    if (!is.null(decomp)) {
+        componente_sazonal <- decomp$time.series[,"seasonal"]
+        # Calcular média sazonal por mês
+        n_anos <- length(componente_sazonal) / 12
+        matriz_sazonal <- matrix(componente_sazonal[1:(12 * floor(n_anos))], 
+                                ncol = 12, byrow = TRUE)
+        indice_sazonal <- colMeans(matriz_sazonal, na.rm = TRUE)
+    } else {
+        indice_sazonal <- NULL
+    }
+    
+    return(list(
+        serie_temporal = ts_serie,
+        dados_ts = ts_data,
+        decomposicao = decomp,
+        teste_mk = mk_resultado,
+        sens_slope = sens_slope,
+        indice_sazonal = indice_sazonal
+    ))
+}
+
+# Aplicar análise
+resultado_analise <- analisar_tendencia_sazonalidade(dengue)
+
+```
+
+```{r}
+#| label: fig-decomposicao-stl
+#| fig-cap: "Decomposição STL da série temporal de dengue - Tendência, Sazonalidade e Resíduos"
+
+if (!is.null(resultado_analise$decomposicao)) {
+    # Converter os índices temporais da série ts para datas
+    ts_time <- time(resultado_analise$serie_temporal)
+    ts_dates <- seq(
+        from = as.Date(paste(start(resultado_analise$serie_temporal)[1], 
+                            start(resultado_analise$serie_temporal)[2], 
+                            "01", sep = "-")),
+        by = "month",
+        length.out = length(resultado_analise$serie_temporal)
+    )
+    
+    # Extrair componentes da decomposição
+    decomp_data <- data.frame(
+        Data = ts_dates,
+        Observado = as.numeric(resultado_analise$serie_temporal),
+        Tendencia = as.numeric(resultado_analise$decomposicao$time.series[,"trend"]),
+        Sazonalidade = as.numeric(resultado_analise$decomposicao$time.series[,"seasonal"]),
+        Residuos = as.numeric(resultado_analise$decomposicao$time.series[,"remainder"])
+    )
+    
+    # Gráfico da decomposição com plotly
+    p1 <- plot_ly(decomp_data, x = ~Data, y = ~Observado, type = "scatter", mode = "lines",
+                  name = "Observado", line = list(color = "#2E86AB", width = 2)) |>
+        layout(title = "Série Observada", yaxis = list(title = "Casos"))
+    
+    p2 <- plot_ly(decomp_data, x = ~Data, y = ~Tendencia, type = "scatter", mode = "lines",
+                  name = "Tendência", line = list(color = "#A23B72", width = 2)) |>
+        layout(title = "Tendência", yaxis = list(title = "Casos"))
+    
+    p3 <- plot_ly(decomp_data, x = ~Data, y = ~Sazonalidade, type = "scatter", mode = "lines",
+                  name = "Sazonalidade", line = list(color = "#F18F01", width = 2)) |>
+        layout(title = "Componente Sazonal", yaxis = list(title = "Efeito"))
+    
+    p4 <- plot_ly(decomp_data, x = ~Data, y = ~Residuos, type = "scatter", mode = "lines",
+                  name = "Resíduos", line = list(color = "#C73E1D", width = 1)) |>
+        layout(title = "Resíduos", yaxis = list(title = "Resíduos"))
+    
+    # Combinar gráficos
+    subplot(p1, p2, p3, p4, nrows = 4, shareX = TRUE, titleY = TRUE) |>
+        layout(
+            title = list(
+                text = "Decomposição STL - Dengue São José do Rio Preto/SP<br><sub>Separação de Tendência, Sazonalidade e Ruído</sub>",
+                font = list(size = 16, color = "#2c3e50")
+            ),
+            showlegend = FALSE,
+            plot_bgcolor = "rgba(0,0,0,0)",
+            paper_bgcolor = "rgba(0,0,0,0)"
+        ) |>
+        config(displayModeBar = TRUE, displaylogo = FALSE)
+    
+} else {
+    cat("⚠️ Dados insuficientes para decomposição STL (mínimo 24 meses necessários)")
+}
+```
+
+```{r}
+#| label: calculo-indices-estatisticos
+#| echo: false
+#| output: false
+
+# Cálculo dos índices para uso nas explicações cursivas
+mk_resultado <- resultado_analise$teste_mk
+sens_resultado <- resultado_analise$sens_slope
+
+# Interpretação da tendência
+p_valor <- mk_resultado$p.value
+tau <- mk_resultado$statistic
+
+# Significância
+if (p_valor < 0.001) {
+    significancia <- "altamente significativa (p < 0.001)"
+    significancia_emoji <- "🔥"
+} else if (p_valor < 0.01) {
+    significancia <- "muito significativa (p < 0.01)"
+    significancia_emoji <- "⚡"
+} else if (p_valor < 0.05) {
+    significancia <- "significativa (p < 0.05)"
+    significancia_emoji <- "✅"
+} else {
+    significancia <- "não significativa (p ≥ 0.05)"
+    significancia_emoji <- "➡️"
+}
+
+# Direção da tendência
+if (p_valor < 0.05) {
+    if (tau > 0) {
+        direcao <- "crescente"
+        direcao_emoji <- "📈"
+    } else {
+        direcao <- "decrescente"
+        direcao_emoji <- "📉"
+    }
+} else {
+    direcao <- "estável"
+    direcao_emoji <- "➡️"
+}
+
+# Magnitude (Sen's slope)
+if (!is.null(sens_resultado)) {
+    magnitude <- round(sens_resultado$estimates, 3)
+    magnitude_abs <- abs(magnitude)
+} else {
+    magnitude <- 0
+    magnitude_abs <- 0
+}
+
+# Índice sazonal
+if (!is.null(resultado_analise$indice_sazonal)) {
+    indice_sazonal <- resultado_analise$indice_sazonal
+    meses_nomes <- c("Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
+    
+    mes_maior_idx <- which.max(indice_sazonal)
+    mes_menor_idx <- which.min(indice_sazonal)
+    mes_maior <- meses_nomes[mes_maior_idx]
+    mes_menor <- meses_nomes[mes_menor_idx]
+    
+    # Meses de alto e baixo risco
+    q75 <- quantile(indice_sazonal, 0.75)
+    q25 <- quantile(indice_sazonal, 0.25)
+    
+    meses_alto_risco <- meses_nomes[indice_sazonal > q75]
+    meses_baixo_risco <- meses_nomes[indice_sazonal < q25]
+    
+    # Formatação para texto
+    if (length(meses_alto_risco) > 1) {
+        meses_alto_texto <- paste(paste(meses_alto_risco[-length(meses_alto_risco)], collapse = ", "), 
+                                 "e", meses_alto_risco[length(meses_alto_risco)])
+    } else {
+        meses_alto_texto <- meses_alto_risco[1]
+    }
+    
+    if (length(meses_baixo_risco) > 1) {
+        meses_baixo_texto <- paste(paste(meses_baixo_risco[-length(meses_baixo_risco)], collapse = ", "), 
+                                  "e", meses_baixo_risco[length(meses_baixo_risco)])
+    } else {
+        meses_baixo_texto <- meses_baixo_risco[1]
+    }
+} else {
+    mes_maior <- "Indisponível"
+    mes_menor <- "Indisponível"
+    meses_alto_texto <- "Dados insuficientes"
+    meses_baixo_texto <- "Dados insuficientes"
+}
+```
+
+<p>A análise estatística da série temporal de dengue em São José do Rio Preto revela padrões importantes para o planejamento em saúde pública. Através da **decomposição STL**, é possível separar a série em três componentes fundamentais: a **tendência de longo prazo**, que mostra `r direcao_emoji` uma tendência **`r direcao`** `r significancia_emoji` `r significancia` (τ = `r format(round(tau, 4), nsmall = 4)`, p = `r format(round(p_valor, 4), nsmall = 4)`), o **padrão sazonal recorrente**, que identifica sistematicamente os meses de maior e menor risco, e o **componente de ruído**, que representa variações não explicadas pelos padrões identificados.</p>
+
+`r if(p_valor < 0.05 && !is.null(sens_resultado)) paste0("<p>A tendência ", direcao, " detectada indica uma variação média de **", ifelse(magnitude > 0, "+", ""), format(magnitude, nsmall = 3), " casos por mês** ao longo do período analisado, segundo o estimador robusto de Sen. Esta informação é crucial para o dimensionamento de recursos e planejamento de ações preventivas a médio e longo prazo.</p>") else "<p>A ausência de tendência significativa sugere que as variações observadas na série temporal estão predominantemente associadas aos padrões sazonais e a flutuações aleatórias, indicando relativa estabilidade na incidência média de dengue ao longo dos anos analisados.</p>"`
+
+```{r}
+#| label: fig-indice-sazonal
+#| fig-cap: "Índice de sazonalidade mensal para dengue"
+
+if (!is.null(resultado_analise$indice_sazonal)) {
+    # Criar dataframe para o índice sazonal
+    indice_df <- data.frame(
+        Mes = factor(1:12, levels = 1:12, labels = c(
+            "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+            "Jul", "Ago", "Set", "Out", "Nov", "Dez"
+        )),
+        Indice = resultado_analise$indice_sazonal,
+        Interpretacao = ifelse(resultado_analise$indice_sazonal > 0, "Acima da média", "Abaixo da média"),
+        Cor = ifelse(resultado_analise$indice_sazonal > 0, "#E74C3C", "#3498DB")
+    )
+    
+    # Gráfico do índice sazonal
+    plot_ly(
+        indice_df,
+        x = ~Mes,
+        y = ~Indice,
+        type = "bar",
+        marker = list(color = ~Cor),
+        hovertemplate = "<b>%{x}</b><br>" %+%
+                       "Índice Sazonal: %{y:.2f}<br>" %+%
+                       "%{customdata}<br>" %+%
+                       "<extra></extra>",
+        customdata = ~Interpretacao
+    ) |>
+    layout(
+        title = list(
+            text = "Índice de Sazonalidade Mensal<br><sub>Efeito sazonal médio por mês (desvio da tendência)</sub>",
+            font = list(size = 16, color = "#2c3e50")
+        ),
+        xaxis = list(
+            title = "Mês",
+            tickangle = 0
+        ),
+        yaxis = list(
+            title = "Índice Sazonal",
+            zeroline = TRUE,
+            zerolinecolor = "black",
+            zerolinewidth = 2
+        ),
+        plot_bgcolor = "rgba(0,0,0,0)",
+        paper_bgcolor = "rgba(0,0,0,0)",
+        showlegend = FALSE
+    ) |>
+    config(displayModeBar = TRUE, displaylogo = FALSE)
+    
+} else {
+    cat("⚠️ Dados insuficientes para cálculo do índice sazonal")
+}
+```
+
+<p>O **índice de sazonalidade** quantifica precisamente o efeito sazonal de cada mês, revelando que **`r mes_maior`** apresenta o maior efeito sazonal positivo (pico de transmissão), enquanto **`r mes_menor`** registra o menor efeito sazonal (vale de transmissão). Esta análise estatística identifica `r if(exists("meses_alto_texto") && meses_alto_texto != "Dados insuficientes") paste0("**", meses_alto_texto, "**") else "os meses do primeiro semestre"` como período de **maior risco epidemiológico**, exigindo intensificação das ações de vigilância e controle vetorial, e `r if(exists("meses_baixo_texto") && meses_baixo_texto != "Dados insuficientes") paste0("**", meses_baixo_texto, "**") else "os meses do segundo semestre"` como janela de oportunidade para **ações preventivas estruturais** e preparação para o próximo ciclo sazonal.</p>
+
+:::
 
 # Monitoramento Mensal
 <br>
