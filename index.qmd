@@ -297,8 +297,12 @@ tabela_indicador |>
 
 # Incidência por Estabelecimento de Saúde
 <br>
-Em <b>2025</b>, a distribuição espacial das notificações de dengue registradas nos estabelecimentos de saúde do Muncípio pode ser observada no mapa abaixo:
+Em <b>2025</b>, a distribuição espacial das notificações de dengue registradas nos estabelecimentos de saúde do Município pode ser analisada através do mapa interativo ou da tabela detalhada:
 <br>
+
+::: {.panel-tabset}
+
+## 🗺️ Mapa Interativo
 
 ```{r}
 #| label: fig-mapa
@@ -415,6 +419,63 @@ map_with_cases |>
             )
         )
 ```
+
+## 📊 Tabela Detalhada
+
+```{r}
+#| label: tbl-estabelecimentos
+#| tbl-cap: "Ranking de estabelecimentos por número de notificações - 2025"
+
+# Criar tabela detalhada por estabelecimento
+tabela_estabelecimentos <- map |>
+    dplyr::inner_join(
+        dengue_map, 
+        by = c("code_cnes" = "id_unidade")
+    ) |>
+    sf::st_drop_geometry() |>
+    dplyr::select(
+        `Estabelecimento` = no_fantasia,
+        `CNES` = code_cnes,
+        `Total de Casos` = n_casos
+    ) |>
+    dplyr::arrange(desc(`Total de Casos`))
+
+# Exibir tabela
+tabela_estabelecimentos |>
+    DT::datatable(
+        options = list(
+            pageLength = 15,
+            dom = 'frtip',
+            columnDefs = list(
+                list(className = 'dt-center', targets = 1:2),
+                list(className = 'dt-left', targets = 0)
+            ),
+            language = list(
+                search = "Buscar:",
+                lengthMenu = "Mostrar _MENU_ registros por página",
+                info = "Mostrando _START_ a _END_ de _TOTAL_ estabelecimentos",
+                paginate = list(
+                    first = "Primeiro",
+                    last = "Último", 
+                    `next` = "Próximo",
+                    previous = "Anterior"
+                )
+            )
+        ),
+        rownames = FALSE,
+        class = "cell-border stripe hover"
+    ) |>
+    DT::formatStyle(
+        "Total de Casos",
+        backgroundColor = DT::styleInterval(
+            cuts = c(5, 10, 20),
+            values = c("#e8f5e8", "#fff3e0", "#ffebee", "#ffcdd2")
+        ),
+        fontWeight = "bold"
+    )
+```
+
+:::
 
 <br>
 
