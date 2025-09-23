@@ -16,7 +16,7 @@ Este repositório contém o código fonte para monitoramento de notificações d
 
 - **Análise temporal**: Série histórica 2018-2025 com padrões sazonais
 - **Análise estatística avançada**: Decomposição STL, teste de Mann-Kendall e índice de sazonalidade
-- **Indicadores estatísticos**: Sistema de alertas baseado em Z-score para identificação de anomalias epidemiológicas
+- **Indicadores estatísticos**: Sistema de alertas baseado em análise Z-score para identificação rigorosa de anomalias epidemiológicas
 - **Navegação por abas**: Interface organizada com separação entre análise sazonal, estatística e espacial
 - **Gráficos interativos**: Visualização de tendências sazonais com hover personalizado em português
 - **Mapa interativo**: Distribuição espacial por estabelecimentos de saúde com popups informativos e dados mensais
@@ -55,18 +55,25 @@ O sistema implementa metodologias estatísticas avançadas para análise tempora
 - **Índice de Sazonalidade**: Quantificação do efeito sazonal mensal
 
 ### Indicadores de Criticidade
-O sistema utiliza **análise baseada em múltiplos da média histórica** para identificação de variações epidemiológicas:
+O sistema utiliza **análise Z-score** para identificação rigorosa de variações epidemiológicas:
 
-- **≥ 200% da média**: 🚨 **CRÍTICO** - Casos excepcionalmente elevados
-- **150% a 199% da média**: ⚠️ **ALTO** - Significativamente acima do esperado
-- **100% a 149% da média**: 🟡 **ACIMA DA MÉDIA** - Ligeiramente elevado
-- **50% a 99% da média**: 🟢 **NORMAL** - Dentro da variação esperada
-- **< 50% da média**: 🔵 **BAIXO** - Abaixo da média histórica
+- **Z-score ≥ 2**: 🚨 **CRÍTICO** - Estatisticamente significativo (p < 0.05)
+- **1 ≤ Z-score < 2**: ⚠️ **ALTO** - Acima do esperado, requer atenção  
+- **0 ≤ Z-score < 1**: 🟡 **ACIMA DA MÉDIA** - Ligeiramente elevado
+- **-1 ≤ Z-score < 0**: 🟢 **NORMAL** - Dentro da variação esperada
+- **Z-score < -1**: 🔵 **BAIXO** - Abaixo da média histórica
+
+#### Vantagens do Z-score:
+- **Rigor estatístico**: Considera a variabilidade natural (desvio padrão)
+- **Significância estatística**: Permite inferências probabilísticas  
+- **Sensibilidade ajustada**: Detecta anomalias considerando dispersão histórica
+- **Comparabilidade**: Valores padronizados entre diferentes escalas temporais
 
 ### Baseline Histórico
 - **Período de referência**: 2018-2024 (7 anos)
-- **Cálculo**: Médias mensais com desvio padrão para cada mês
-- **Atualização**: Dados de 2025 comparados dinamicamente
+- **Cálculo**: Médias mensais e desvios padrão para cada mês
+- **Z-score**: (Valor Atual - Média Histórica) / Desvio Padrão
+- **Atualização**: Dados de 2025 comparados dinamicamente com significância estatística
 
 ## ⚙️ Configuração
 

@@ -96,7 +96,7 @@ meses_pt_br <- function(data_col) {
 ```
 
 ```{r}
-# Cálculo das médias históricas por mês (excluindo 2025 para baseline)
+# Cálculo das médias históricas por mês com desvio padrão (excluindo 2025 para baseline)
 medias_historicas <- dengue |>
     dplyr::mutate(
         ano = lubridate::year(dt_notific),
@@ -104,11 +104,14 @@ medias_historicas <- dengue |>
         mes_nome = meses_pt_br(dt_notific)
     ) |>
     dplyr::filter(ano > 2017, ano < 2025) |>  # Histórico 2018-2024
+    dplyr::group_by(mes, mes_nome, ano) |>
+    dplyr::summarise(casos_ano = dplyr::n(), .groups = "drop") |>
     dplyr::group_by(mes, mes_nome) |>
     dplyr::summarise(
-        casos_total = dplyr::n(),
+        casos_total = sum(casos_ano),
         anos_analisados = dplyr::n_distinct(ano),
-        media_casos = round(dplyr::n() / dplyr::n_distinct(ano), 1),
+        media_casos = round(mean(casos_ano), 1),
+        desvio_padrao = round(sd(casos_ano), 2),
         .groups = "drop"
     ) |>
     dplyr::arrange(mes)
@@ -136,24 +139,35 @@ casos_2025 <- dengue |>
 #| label: tabela-indicador
 #| tbl-cap: "Indicadores de alerta por mês - Comparação 2025 vs. médias históricas (2018-2024)"
 
-# Tabela comparativa com indicador de alerta
+# Tabela comparativa com indicador de alerta baseado em Z-score
 tabela_indicador <- medias_historicas |>
     dplyr::left_join(casos_2025, by = c("mes", "mes_nome")) |>
     dplyr::mutate(
         casos_2025 = ifelse(is.na(casos_2025), 0, casos_2025),
         diferenca = casos_2025 - media_casos,
         percentual_diferenca = round(((casos_2025 / media_casos) - 1) * 100, 1),
+        # Cálculo do Z-score
+        z_score = round(ifelse(desvio_padrao > 0, 
+                              (casos_2025 - media_casos) / desvio_padrao, 
+                              0), 2),
+        # Sistema de alertas baseado em Z-score
         status_alerta = dplyr::case_when(
-            casos_2025 >= (media_casos * 2) ~ "🚨 CRÍTICO",
-            casos_2025 >= (media_casos * 1.5) ~ "⚠️ ALTO",
-            casos_2025 >= media_casos ~ "🟡 ACIMA DA MÉDIA",
-            casos_2025 >= (media_casos * 0.5) ~ "🟢 NORMAL",
+            z_score >= 2 ~ "🚨 CRÍTICO",
+            z_score >= 1 ~ "⚠️ ALTO", 
+            z_score >= 0 ~ "🟡 ACIMA DA MÉDIA",
+            z_score >= -1 ~ "🟢 NORMAL",
             TRUE ~ "🔵 BAIXO"
+        ),
+        # Interpretação estatística
+        significancia = dplyr::case_when(
+            abs(z_score) >= 2 ~ "Estatisticamente significativo (p < 0.05)",
+            abs(z_score) >= 1.65 ~ "Tendência significativa (p < 0.10)",
+            TRUE ~ "Dentro da variação normal"
         )
     ) |>
     dplyr::select(
-        mes_nome, media_casos, casos_2025, diferenca, 
-        percentual_diferenca, status_alerta
+        mes_nome, media_casos, desvio_padrao, casos_2025, diferenca, 
+        percentual_diferenca, z_score, significancia, status_alerta
     )
 
 # A tabela será exibida no próximo chunk com formatação interativa
@@ -609,6 +623,10 @@ tabela_indicador |>
             media_casos, decimal.mark = ",", 
             big.mark = ".", nsmall = 1
         ),
+        `Desvio Padrão` = format(
+            desvio_padrao, decimal.mark = ",", 
+            big.mark = ".", nsmall = 2
+        ),
         `Casos 2025` = format(
             casos_2025, decimal.mark = ",", 
             big.mark = "."
@@ -621,14 +639,17 @@ tabela_indicador |>
             percentual_diferenca >= 0,
             paste0("+", format(percentual_diferenca, decimal.mark = ",", nsmall = 1), "%"),
             paste0(format(percentual_diferenca, decimal.mark = ",", nsmall = 1), "%")),
+        `Z-score` = format(z_score, decimal.mark = ",", nsmall = 2),
+        `Significância` = significancia,
         `Status` = status_alerta
     ) |>
     dplyr::select(
         `Mês` = mes_nome,
         `Média Histórica`,
+        `Desvio Padrão`,
         `Casos 2025`,
-        `Diferença`,
-        `Variação (%)`,
+        `Z-score`,
+        `Significância`,
         `Status`
     ) |>
     DT::datatable(
@@ -638,9 +659,10 @@ tabela_indicador |>
             columnDefs = list(
                 list(
                     className = 'dt-center', 
-                    targets = 1:5
+                    targets = 1:6
                 )
-            )
+            ),
+            scrollX = TRUE
         ),
         rownames = FALSE,
         class = "cell-border stripe"
