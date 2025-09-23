@@ -29,6 +29,8 @@ library(plotly)
 library(DT)
 library(sf)
 library(leaflet)
+library(forecast)
+library(trend)
 
 # Carregar variáveis de ambiente do arquivo .env
 if (file.exists(".env")) {
@@ -241,8 +243,6 @@ config(
 ```{r}
 #| label: analise-tendencia-sazonalidade
 #| warning: false
-library(forecast)
-library(trend)
 
 # Função para análise completa de tendência e sazonalidade
 analisar_tendencia_sazonalidade <- function(dados) {
@@ -374,13 +374,13 @@ if (!is.null(resultado_analise$decomposicao)) {
         layout(title = "Tendência", yaxis = list(title = "Casos"))
     
     p3 <- plot_ly(
-        decomp_data, 
-        x = ~Data, 
-        y = ~Sazonalidade, 
-        type = "scatter", 
-        mode = "lines",
-        name = "Sazonalidade", 
-        line = list(color = "#F18F01", width = 2)
+            decomp_data, 
+            x = ~Data, 
+            y = ~Sazonalidade, 
+            type = "scatter", 
+            mode = "lines",
+            name = "Sazonalidade", 
+            line = list(color = "#F18F01", width = 2)
         ) |>
         layout(
             title = "Componente Sazonal", 
@@ -388,13 +388,13 @@ if (!is.null(resultado_analise$decomposicao)) {
         )
     
     p4 <- plot_ly(
-        decomp_data, 
-        x = ~Data, 
-        y = ~Residuos, 
-        type = "scatter", 
-        mode = "lines",
-        name = "Resíduos", 
-        line = list(color = "#C73E1D", width = 1)
+            decomp_data, 
+            x = ~Data, 
+            y = ~Residuos, 
+            type = "scatter", 
+            mode = "lines",
+            name = "Resíduos", 
+            line = list(color = "#C73E1D", width = 1)
         ) |>
         layout(
             title = "Resíduos", 
@@ -403,10 +403,10 @@ if (!is.null(resultado_analise$decomposicao)) {
     
     # Combinar gráficos
     subplot(
-        p1, p2, p3, p4, 
-        nrows = 4, 
-        shareX = TRUE, 
-        titleY = TRUE
+            p1, p2, p3, p4, 
+            nrows = 4, 
+            shareX = TRUE, 
+            titleY = TRUE
         ) |>
         layout(
             title = list(
