@@ -144,14 +144,21 @@ tabela_indicador <- medias_historicas |>
     dplyr::left_join(casos_2025, by = c("mes", "mes_nome")) |>
     dplyr::mutate(
         casos_2025 = ifelse(is.na(casos_2025), 0, casos_2025),
+        # Verificar se há dados reais para 2025 neste mês
+        tem_dados_2025 = casos_2025 > 0,
         diferenca = casos_2025 - media_casos,
         percentual_diferenca = round(((casos_2025 / media_casos) - 1) * 100, 1),
-        # Cálculo do Z-score
-        z_score = round(ifelse(desvio_padrao > 0, 
-                              (casos_2025 - media_casos) / desvio_padrao, 
-                              0), 2),
+        # Cálculo do Z-score apenas se há dados
+        z_score = ifelse(
+            tem_dados_2025 & desvio_padrao > 0, 
+            round(
+                (casos_2025 - media_casos) / desvio_padrao, 2
+            ), 
+            NA_real_
+        ),
         # Sistema de alertas baseado em Z-score
         status_alerta = dplyr::case_when(
+            !tem_dados_2025 ~ "📊 SEM DADOS",
             z_score >= 2 ~ "🚨 CRÍTICO",
             z_score >= 1 ~ "⚠️ ALTO", 
             z_score >= 0 ~ "🟡 ACIMA DA MÉDIA",
@@ -160,6 +167,7 @@ tabela_indicador <- medias_historicas |>
         ),
         # Interpretação estatística
         significancia = dplyr::case_when(
+            !tem_dados_2025 ~ "Aguardando dados do período",
             abs(z_score) >= 2 ~ "Estatisticamente significativo (p < 0.05)",
             abs(z_score) >= 1.65 ~ "Tendência significativa (p < 0.10)",
             TRUE ~ "Dentro da variação normal"
@@ -639,7 +647,11 @@ tabela_indicador |>
             percentual_diferenca >= 0,
             paste0("+", format(percentual_diferenca, decimal.mark = ",", nsmall = 1), "%"),
             paste0(format(percentual_diferenca, decimal.mark = ",", nsmall = 1), "%")),
-        `Z-score` = format(z_score, decimal.mark = ",", nsmall = 2),
+        `Z-score` = ifelse(
+            is.na(z_score), 
+            "—", 
+            format(z_score, decimal.mark = ",", nsmall = 2)
+        ),
         `Significância` = significancia,
         `Status` = status_alerta
     ) |>
@@ -671,9 +683,9 @@ tabela_indicador |>
         "Status",
         backgroundColor = DT::styleEqual(
             c("🚨 CRÍTICO", "⚠️ ALTO", "🟡 ACIMA DA MÉDIA", 
-            "🟢 NORMAL", "🔵 BAIXO"),
+            "🟢 NORMAL", "🔵 BAIXO", "📊 SEM DADOS"),
             c("#ffebee", "#fff3e0", "#fffde7", 
-            "#e8f5e8", "#e3f2fd")
+            "#e8f5e8", "#e3f2fd", "#f5f5f5")
         )
     )
 ```
