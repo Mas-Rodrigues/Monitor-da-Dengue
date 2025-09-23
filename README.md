@@ -1,19 +1,27 @@
 # Monitor da Dengue - São José do Rio Preto/SP
 
-## 📊 Acesse o Dashboard Interativo
+## 📊 Acesse o Dashboard ### 📦 Pacotes R necessários:
+```r
+install.packages(c(
+  "DBI", "duckdb", "tidyverse", "plotly", "DT", 
+  "sf", "leaflet", "quarto", "lubridate", "forecast", "trend"
+))
+```ivo
 
 **[🔗 Ver Relatório Completo](https://mas-rodrigues.github.io/Monitor-da-Dengue/)**
 
-Este repositório contém o código fonte para monitoramento de notificações de dengue em São José do Rio Preto/SP, com análise de sazonalidade e indicadores de alerta baseados em dados históricos.
+Este repositório contém o código fonte para monitoramento de notificações de dengue em São José do Rio Preto/SP, com análise de sazonalidade, tendências temporais e indicadores de alerta baseados em metodologias estatísticas avançadas e dados históricos.
 
 ## 📈 Funcionalidades
 
 - **Análise temporal**: Série histórica 2018-2025 com padrões sazonais
+- **Análise estatística avançada**: Decomposição STL, teste de Mann-Kendall e índice de sazonalidade
 - **Indicadores estatísticos**: Sistema de alertas baseado em Z-score para identificação de anomalias epidemiológicas
-- **Navegação por abas**: Interface organizada com separação entre visualização de mapa e tabelas analíticas
+- **Navegação por abas**: Interface organizada com separação entre análise sazonal, estatística e espacial
 - **Gráficos interativos**: Visualização de tendências sazonais com hover personalizado em português
-- **Mapa interativo**: Distribuição espacial por estabelecimentos de saúde com popups informativos
+- **Mapa interativo**: Distribuição espacial por estabelecimentos de saúde com popups informativos e dados mensais
 - **Tabelas dinâmicas**: Análise comparativa mensal com indicadores de criticidade
+- **Explicações automatizadas**: Interpretação cursiva dos resultados estatísticos em linguagem acessível
 - **Design responsivo**: Interface adaptável para desktop, tablet e dispositivos móveis
 - **Atualização automática**: Datas e estatísticas calculadas dinamicamente
 
@@ -25,6 +33,8 @@ Este repositório contém o código fonte para monitoramento de notificações d
 - **Leaflet**: Mapas interativos com marcadores responsivos
 - **DT (DataTables)**: Tabelas interativas com filtragem e ordenação
 - **sf**: Processamento e análise de dados espaciais
+- **forecast**: Análise de séries temporais e decomposição STL
+- **trend**: Testes estatísticos de tendência (Mann-Kendall, Sen slope)
 - **CSS responsivo**: Design adaptável para múltiplos dispositivos
 - **GitHub Pages**: Hospedagem automática com CI/CD
 
@@ -36,14 +46,22 @@ Este repositório contém o código fonte para monitoramento de notificações d
 
 ## 📈 Metodologia Estatística
 
-### Indicadores de Criticidade
-O sistema utiliza **análise Z-score** para identificação de anomalias epidemiológicas:
+### Análise de Séries Temporais
+O sistema implementa metodologias estatísticas avançadas para análise temporal:
 
-- **Z-score ≥ 2**: 🚨 **CRÍTICO** - Valor estatisticamente significativo (p < 0.05)
-- **1 ≤ Z-score < 2**: ⚠️ **ALTO** - Acima do esperado, requer atenção
-- **0 ≤ Z-score < 1**: 🟡 **ACIMA DA MÉDIA** - Ligeiramente elevado
-- **-1 ≤ Z-score < 0**: 🟢 **NORMAL** - Dentro da variação esperada
-- **Z-score < -1**: 🔵 **BAIXO** - Abaixo da média histórica
+- **Decomposição STL**: Separação da série temporal em tendência, sazonalidade e ruído
+- **Teste de Mann-Kendall**: Detecção robusta de tendências monotônicas (não-paramétrico)
+- **Sen Slope**: Estimação da magnitude de tendências temporais
+- **Índice de Sazonalidade**: Quantificação do efeito sazonal mensal
+
+### Indicadores de Criticidade
+O sistema utiliza **análise baseada em múltiplos da média histórica** para identificação de variações epidemiológicas:
+
+- **≥ 200% da média**: 🚨 **CRÍTICO** - Casos excepcionalmente elevados
+- **150% a 199% da média**: ⚠️ **ALTO** - Significativamente acima do esperado
+- **100% a 149% da média**: 🟡 **ACIMA DA MÉDIA** - Ligeiramente elevado
+- **50% a 99% da média**: 🟢 **NORMAL** - Dentro da variação esperada
+- **< 50% da média**: 🔵 **BAIXO** - Abaixo da média histórica
 
 ### Baseline Histórico
 - **Período de referência**: 2018-2024 (7 anos)

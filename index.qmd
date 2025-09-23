@@ -530,6 +530,7 @@ if (!is.null(resultado_analise$indice_sazonal)) {
 }
 ```
 
+<br>
 <p>A análise estatística da série temporal de dengue em São José do Rio Preto revela padrões importantes para o planejamento em saúde pública. Através da **decomposição STL**, é possível separar a série em três componentes fundamentais: a **tendência de longo prazo**, que mostra uma tendência **`r direcao`** `r significancia` (τ = `r format(round(tau, 4), nsmall = 4)`, p = `r format(round(p_valor, 4), nsmall = 4)`), o **padrão sazonal recorrente**, que identifica sistematicamente os meses de maior e menor risco, e o **componente de ruído**, que representa variações não explicadas pelos padrões identificados.</p>
 
 `r if(p_valor < 0.05 && !is.null(sens_resultado)) paste0("<p>A tendência ", direcao, " detectada indica uma variação média de **", ifelse(magnitude > 0, "+", ""), format(magnitude, nsmall = 3), " casos por mês** ao longo do período analisado, segundo o estimador robusto de Sen. Esta informação é crucial para o dimensionamento de recursos e planejamento de ações preventivas a médio e longo prazo.</p>") else "<p>A ausência de tendência significativa sugere que as variações observadas na série temporal estão predominantemente associadas aos padrões sazonais e a flutuações aleatórias, indicando relativa estabilidade na incidência média de dengue ao longo dos anos analisados.</p>"`
