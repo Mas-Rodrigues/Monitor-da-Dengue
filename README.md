@@ -1,13 +1,5 @@
 # Monitor da Dengue - São José do Rio Preto/SP
 
-## 📊 Acesse o Dashboard ### 📦 Pacotes R necessários:
-```r
-install.packages(c(
-  "DBI", "duckdb", "tidyverse", "plotly", "DT", 
-  "sf", "leaflet", "quarto", "lubridate", "forecast", "trend"
-))
-```ivo
-
 **[🔗 Ver Relatório Completo](https://mas-rodrigues.github.io/Monitor-da-Dengue/)**
 
 Este repositório contém o código fonte para monitoramento de notificações de dengue em São José do Rio Preto/SP, com análise de sazonalidade, tendências temporais e indicadores de alerta baseados em metodologias estatísticas avançadas e dados históricos.
