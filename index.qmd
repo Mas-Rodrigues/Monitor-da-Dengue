@@ -23,7 +23,6 @@ css: styles.css
 
 # Pacotes
 library(DBI)
-library(tidyverse)
 library(dplyr)
 library(plotly)
 library(DT)
@@ -160,7 +159,7 @@ casos_2025 <- dengue |>
 ```
 
 <br>
-<p>Com base nos dados disponibilizados pelo pacote [microdatasus](https://github.com/rfsaldanha/microdatasus){target="_blank"}, sobre notificações de dengue no município de São José do Rio Preto/SP, no período de 01 de janeiro de 2018 a `r format(max(dengue$dt_notific[lubridate::year(dengue$dt_notific) == 2025]), "%d de %B de %Y")`, esta análise foca na sazonalidade e no monitoramento da criticidade do fenômeno:</p>
+<p>Com base nos dados disponibilizados pelo pacote [microdatasus](https://github.com/rfsaldanha/microdatasus){target="_blank"}, sobre **notificações de dengue** no município de São José do Rio Preto/SP, no período de 01 de janeiro de 2018 a `r format(max(dengue$dt_notific[lubridate::year(dengue$dt_notific) == 2025]), "%d de %B de %Y")`, esta análise foca na sazonalidade e no monitoramento da criticidade do fenômeno:</p>
 
 ```{r}
 #| label: tabela-indicador
