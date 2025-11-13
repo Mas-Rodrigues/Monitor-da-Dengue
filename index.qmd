@@ -449,7 +449,7 @@ if (!is.null(resultado_analise$decomposicao)) {
         plotly::layout(
             title = "Tendência", 
             yaxis = list(
-                title = "Casos",
+                title = "Tendência",
                 tickformat = ",d"
             )
         )
@@ -471,7 +471,7 @@ if (!is.null(resultado_analise$decomposicao)) {
         plotly::layout(
             title = "Componente Sazonal", 
             yaxis = list(
-                title = "Efeito",
+                title = "Sazonalidade",
                 tickformat = ",d"
             )
         )
