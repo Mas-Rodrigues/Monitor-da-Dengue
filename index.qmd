@@ -119,14 +119,14 @@ meses_pt_br <- function(data_col) {
 ```
 
 ```{r}
-# Cálculo das médias históricas por mês com desvio padrão (excluindo 2025 para baseline)
+# Cálculo das médias históricas por mês com desvio padrão (excluindo 2026 para baseline)
 medias_historicas <- dengue |>
     dplyr::mutate(
         ano = lubridate::year(dt_notific),
         mes = lubridate::month(dt_notific),
         mes_nome = meses_pt_br(dt_notific)
     ) |>
-    dplyr::filter(ano > 2017, ano < 2025) |>  # Histórico 2018-2024
+    dplyr::filter(ano > 2017, ano < 2026) |>  # Histórico 2018-2025
     dplyr::group_by(mes, mes_nome, ano) |>
     dplyr::summarise(
         casos_ano = dplyr::n(), 
@@ -142,56 +142,56 @@ medias_historicas <- dengue |>
     ) |>
     dplyr::arrange(mes)
 
-# Casos de 2025 por mês
-casos_2025 <- dengue |>
+# Casos de 2026 por mês
+casos_2026 <- dengue |>
     dplyr::mutate(
         ano = lubridate::year(dt_notific),
         mes = lubridate::month(dt_notific),
         mes_nome = meses_pt_br(dt_notific)
     ) |>
-    dplyr::filter(ano == 2025) |>
+    dplyr::filter(ano == 2026) |>
     dplyr::group_by(mes, mes_nome) |>
     dplyr::summarise(
-        casos_2025 = dplyr::n(),
+        casos_2026 = dplyr::n(),
         .groups = "drop"
     )
 
 ```
 
 <br>
-<p>Com base nos dados disponibilizados pelo pacote [microdatasus](https://github.com/rfsaldanha/microdatasus){target="_blank"}, sobre **notificações de dengue** no município de São José do Rio Preto/SP, no período de 01 de janeiro de 2018 a `r format(max(dengue$dt_notific[lubridate::year(dengue$dt_notific) == 2025]), "%d de %B de %Y")`, esta análise foca na sazonalidade e no monitoramento da criticidade do fenômeno:</p>
+<p>Com base nos dados disponibilizados pelo pacote [microdatasus](https://github.com/rfsaldanha/microdatasus){target="_blank"}, sobre **notificações de dengue** no município de São José do Rio Preto/SP, no período de 01 de janeiro de 2018 a `r format(max(dengue$dt_notific[lubridate::year(dengue$dt_notific) == 2026]), "%d de %B de %Y")`, esta análise foca na sazonalidade e no monitoramento da criticidade do fenômeno:</p>
 
 ```{r}
 #| label: tabela-indicador
-#| tbl-cap: "Indicadores de alerta por mês - Comparação 2025 vs. médias históricas (2018-2024)"
+#| tbl-cap: "Indicadores de alerta por mês - Comparação 2026 vs. médias históricas (2018-2025)"
 
 # Tabela comparativa com indicador de alerta baseado em Z-score
 tabela_indicador <- medias_historicas |>
     dplyr::left_join(
-        casos_2025, 
+        casos_2026, 
         by = c("mes", "mes_nome")
     ) |>
     dplyr::mutate(
-        casos_2025 = ifelse(
-            is.na(casos_2025), 0, casos_2025
+        casos_2026 = ifelse(
+            is.na(casos_2026), 0, casos_2026
         ),
-        # Verificar se há dados reais para 2025 neste mês
-        tem_dados_2025 = casos_2025 > 0,
-        diferenca = casos_2025 - media_casos,
+        # Verificar se há dados reais para 2026 neste mês
+        tem_dados_2026 = casos_2026 > 0,
+        diferenca = casos_2026 - media_casos,
         percentual_diferenca = round(
-            ((casos_2025 / media_casos) - 1) * 100, 1
+            ((casos_2026 / media_casos) - 1) * 100, 1
         ),
         # Cálculo do Z-score apenas se há dados
         z_score = ifelse(
-            tem_dados_2025 & desvio_padrao > 0, 
+            tem_dados_2026 & desvio_padrao > 0, 
             round(
-                (casos_2025 - media_casos) / desvio_padrao, 2
+                (casos_2026 - media_casos) / desvio_padrao, 2
             ), 
             NA_real_
         ),
         # Sistema de alertas baseado em Z-score
         status_alerta = dplyr::case_when(
-            !tem_dados_2025 ~ "📊 SEM DADOS",
+            !tem_dados_2026 ~ "📊 SEM DADOS",
             z_score >= 2 ~ "🚨 CRÍTICO",
             z_score >= 1 ~ "⚠️ ALTO", 
             z_score >= 0 ~ "🟡 ACIMA DA MÉDIA",
@@ -200,7 +200,7 @@ tabela_indicador <- medias_historicas |>
         ),
         # Interpretação estatística
         significancia = dplyr::case_when(
-            !tem_dados_2025 ~ "Aguardando dados do período",
+            !tem_dados_2026 ~ "Aguardando dados do período",
             abs(z_score) >= 2 ~ "Estatisticamente significativo (p < 0.05)",
             abs(z_score) >= 1.65 ~ "Tendência significativa (p < 0.10)",
             TRUE ~ "Dentro da variação normal"
@@ -208,7 +208,7 @@ tabela_indicador <- medias_historicas |>
     ) |>
     dplyr::select(
         mes_nome, media_casos, desvio_padrao, 
-        casos_2025, diferenca, percentual_diferenca, 
+        casos_2026, diferenca, percentual_diferenca, 
         z_score, significancia, status_alerta
     )
 
@@ -259,7 +259,7 @@ plotly::plot_ly(
 ) |>
 plotly::layout(
     title = list(
-        text = "Sazonalidade da Dengue por Ano<br><sub>São José do Rio Preto/SP (2018-2025)</sub>",
+        text = "Sazonalidade da Dengue por Ano<br><sub>São José do Rio Preto/SP (2018-2026)</sub>",
         font = list(
             size = 16, 
             family = "Arial", 
@@ -721,7 +721,7 @@ if (!is.null(resultado_analise$indice_sazonal)) {
 
 ```{r}
 #| label: tbl-monitoramento
-#| tbl-cap: "Monitoramento mensal de dengue com indicadores de criticidade - 2025"
+#| tbl-cap: "Monitoramento mensal de dengue com indicadores de criticidade - 2026"
 
 # Tabela de Criticidade
 tabela_indicador |>
@@ -734,8 +734,8 @@ tabela_indicador |>
             desvio_padrao, decimal.mark = ",", 
             big.mark = ".", nsmall = 2
         ),
-        `Casos 2025` = format(
-            casos_2025, decimal.mark = ",", 
+        `Casos 2026` = format(
+            casos_2026, decimal.mark = ",", 
             big.mark = "."
             ),
         `Diferença` = ifelse(
@@ -758,7 +758,7 @@ tabela_indicador |>
         `Mês` = mes_nome,
         `Média Histórica`,
         `Desvio Padrão`,
-        `Casos 2025`,
+        `Casos 2026`,
         `Z-score`,
         `Significância`,
         `Status`
@@ -792,7 +792,7 @@ tabela_indicador |>
 
 # Incidência por Estabelecimento de Saúde
 <br>
-Em <b>2025</b>, a distribuição espacial das notificações de dengue registradas nos estabelecimentos de saúde do Município pode ser analisada através do mapa interativo ou da tabela detalhada:
+Em <b>2026</b>, a distribuição espacial das notificações de dengue registradas nos estabelecimentos de saúde do Município pode ser analisada através do mapa interativo ou da tabela detalhada:
 <br>
 
 ::: {.panel-tabset}
@@ -803,18 +803,18 @@ Em <b>2025</b>, a distribuição espacial das notificações de dengue registrad
 #| label: fig-mapa
 #| fig-cap: "Distribuição das notificações de dengue em São José do Rio Preto/SP"
 
-# Map - Preparar dados de dengue 2025
+# Map - Preparar dados de dengue 2026
 dengue_map <- dengue |>
-    dplyr::filter(nu_ano == "2025") |>
+    dplyr::filter(nu_ano == "2026") |>
     dplyr::group_by(id_unidade) |>
     dplyr::summarise(
         n_casos = dplyr::n(),
         .groups = "drop"
     )
 
-# Dados mensais por estabelecimento para 2025
+# Dados mensais por estabelecimento para 2026
 dengue_mensal <- dengue |>
-    dplyr::filter(nu_ano == "2025") |>
+    dplyr::filter(nu_ano == "2026") |>
     dplyr::mutate(
         mes = lubridate::month(dt_notific),
         mes_nome = meses_pt_br(dt_notific)
@@ -868,7 +868,7 @@ map_with_cases <- map |>
     dplyr::mutate(
         popup_content = paste0(
             "<b>Unidade:</b> ", no_fantasia, "<br>",
-            "<b>Total de casos em 2025:</b> ", n_casos,
+            "<b>Total de casos em 2026:</b> ", n_casos,
             criar_tabela_mensal(code_cnes)
         ),
         label_content = paste0(no_fantasia, ": ", n_casos, " casos")
@@ -919,7 +919,7 @@ map_with_cases |>
 
 ```{r}
 #| label: tbl-estabelecimentos
-#| tbl-cap: "Ranking de estabelecimentos por número de notificações - 2025"
+#| tbl-cap: "Ranking de estabelecimentos por número de notificações - 2026"
 
 # Criar tabela detalhada por estabelecimento
 tabela_estabelecimentos <- map |>
