@@ -717,7 +717,7 @@ if (!is.null(resultado_analise$indice_sazonal)) {
 
 # Monitoramento Mensal
 <br>
-<p>A tabela a seguir apresenta a variação percentual das notificações de dengue mês a mês, estabelecendo um indicador de alerta baseado na comparação com as médias históricas mensais (período 2018-2024):</p>
+<p>A tabela a seguir apresenta a variação percentual das notificações de dengue mês a mês, estabelecendo um indicador de alerta baseado na comparação com as médias históricas mensais (período 2018-2025):</p>
 
 ```{r}
 #| label: tbl-monitoramento
