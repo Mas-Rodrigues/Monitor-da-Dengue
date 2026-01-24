@@ -18,7 +18,7 @@ _book/
 
 # HTML renderizado (comentado para GitHub Pages)
 # index.html
-# index_files/
+index_files/
 # *.html
 
 # Arquivos do sistema operacional
