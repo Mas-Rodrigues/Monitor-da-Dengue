@@ -889,7 +889,7 @@ map_with_cases |>
             label = ~NM_BAIRRO
         ) |>
         leaflet::addCircleMarkers(
-            radius = ~n_casos * 0.005,  # Mínimo 3px, máximo baseado em casos
+            radius = ~pmax(2, pmin(12, sqrt(pmax(n_casos, 0)) / 1.5)),
             color = "red",
             fillOpacity = 0.7,
             stroke = TRUE,
