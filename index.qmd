@@ -801,7 +801,7 @@ Em <b>2026</b>, a distribuição espacial das notificações de dengue registrad
 
 ```{r}
 #| label: fig-mapa
-#| fig-cap: "Distribuição das notificações de dengue em São José do Rio Preto/SP"
+#| fig-cap: "Distribuição das notificações de dengue por estabelecimento de saúde de São José do Rio Preto/SP"
 
 # Map - Preparar dados de dengue 2026
 dengue_map <- dengue |>
