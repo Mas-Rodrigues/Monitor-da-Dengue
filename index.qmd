@@ -23,6 +23,7 @@ css: styles.css
 
 # Pacotes
 library(DBI)
+library(dbplyr)
 library(dplyr)
 library(plotly)
 library(DT)

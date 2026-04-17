@@ -71,17 +71,19 @@ O sistema utiliza **análise Z-score** para identificação rigorosa de variaç�
 
 Para executar localmente, você precisará:
 
-### �️ Pré-requisitos do Sistema:
-- **R** (versão 4.1+)
-- **Quarto** ([Download](https://quarto.org/docs/get-started/))
+### Pré-requisitos do Sistema
+- **R** 4.5.3
+- **Quarto** 1.9.37
 - **Git** para controle de versão
 
-### �📦 Pacotes R necessários:
+> Este projeto publica o HTML renderizado no GitHub Pages. Por isso, mudanças de versão do Quarto podem alterar também os arquivos gerados em `index.html` e `index_files/`.
+
+### Ambiente R com renv
+O projeto usa `renv` para isolar e restaurar as versões dos pacotes R.
+
 ```r
-install.packages(c(
-  "DBI", "duckdb", "tidyverse", "plotly", "DT", 
-  "sf", "leaflet", "quarto", "lubridate"
-))
+install.packages("renv")
+renv::restore()
 ```
 
 ### 📁 Estrutura de dados:
@@ -100,12 +102,23 @@ git clone https://github.com/Mas-Rodrigues/Monitor-da-Dengue.git
 # Entrar no diretório
 cd Monitor-da-Dengue
 
+# Restaurar o ambiente R do projeto
+Rscript -e 'renv::restore(prompt = FALSE)'
+
+# Validar a versão do Quarto esperada
+./scripts/quarto-project.sh check
+
 # Renderizar o relatório
-quarto render index.qmd
+./scripts/quarto-project.sh render
 
 # Ou executar em modo preview
-quarto preview index.qmd
+./scripts/quarto-project.sh preview
 ```
+
+### Controle da versão do Quarto
+- A versão esperada do Quarto está registrada em `.quarto-version`.
+- O script `scripts/quarto-project.sh` interrompe o render se a versão instalada não coincidir.
+- Se você atualizar o Quarto deliberadamente, re-renderize o projeto completo e revise as mudanças em `index.html` e `index_files/` antes de publicar.
 
 ---
 
