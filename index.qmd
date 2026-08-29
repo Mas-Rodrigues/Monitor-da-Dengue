@@ -878,8 +878,16 @@ map_with_cases <- map |>
 
 map_with_cases |>
     leaflet::leaflet() |>
-        leaflet::addProviderTiles(
-            "CartoDB.Positron"
+        leaflet::addTiles(
+            urlTemplate = paste0(
+                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=", 
+                Sys.getenv("CARTO_API_KEY")
+            ),
+            attribution = '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>, &copy; <a href="https://carto.com">CARTO</a>',
+            options = leaflet::tileOptions(
+                subdomains = "abcd", 
+                maxZoom = 20
+            )
         ) |>
         leaflet::addPolygons(
             data = sjrp,
