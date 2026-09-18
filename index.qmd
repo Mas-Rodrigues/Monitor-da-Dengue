@@ -226,6 +226,7 @@ tabela_indicador <- medias_historicas |>
 ## Padrão Sazonal
 
 ```{r}
+
 #| label: fig-sazonalidade
 #| fig-cap: "Padrão sazonal das notificações de dengue por ano em São José do Rio Preto/SP"
 
@@ -243,58 +244,106 @@ dados_sazonalidade <- dengue |>
     ) |>
     dplyr::arrange(ano, mes)
 
-# Criar gráfico plotly
-plotly::plot_ly(
+# Ano mais recente disponível
+ano_atual <- max(dados_sazonalidade$ano, na.rm = TRUE)
+
+# Anos disponíveis
+anos <- sort(unique(dados_sazonalidade$ano))
+
+# Paleta
+
+# Todos os anos históricos em cinza
+cores_anos <- stats::setNames(
+    rep("#B8BEC5", length(anos)),
+    anos
+)
+
+# Ano atual em destaque
+cores_anos[as.character(ano_atual)] <- "#e52c2f"
+
+# Gráfico
+
+p <- plotly::plot_ly(
     data = dados_sazonalidade,
     x = ~mes,
     y = ~notificacoes,
-    color = ~factor(ano),
+    color = ~factor(ano, levels = anos),
+    colors = cores_anos,
     type = "scatter",
     mode = "lines+markers",
-    line = list(width = 3),
-    marker = list(size = 6),
+    line = list(
+        width = 3.5
+    ),
+    marker = list(
+        size = 4
+    ),
     hovertemplate = "<b>Ano %{fullData.name}</b><br>" %+%
                    "Mês: %{x}<br>" %+%
                    "Notificações: %{y}<br>" %+%
                    "<extra></extra>"
-) |>
-plotly::layout(
-    title = list(
-        text = "Sazonalidade da Dengue por Ano<br><sub>São José do Rio Preto/SP (2018-2026)</sub>",
-        font = list(
-            size = 16, 
-            family = "Arial", 
-            color = "#2c3e50"
-        )
-    ),
-    xaxis = list(
-        title = "Mês",
-        tickangle = -45,
-        font = list(size = 11)
-    ),
-    yaxis = list(
-        title = "Número de Notificações",
-        font = list(size = 11)
-    ),
-    legend = list(
-        title = list(text = "Ano"),
-        orientation = "h",
-        x = 0.5,
-        xanchor = "center",
-        y = -0.15
-    ),
-    hovermode = "x unified",
-    plot_bgcolor = "rgba(0,0,0,0)",
-    paper_bgcolor = "rgba(0,0,0,0)"
-) |>
-plotly::config(
-    displayModeBar = TRUE,
-    modeBarButtonsToRemove = c(
-        "pan2d", "select2d", 
-        "lasso2d", "autoScale2d"
-    ),
-    displaylogo = FALSE
 )
+
+# Destaque exclusivo do ano atual
+p <- p |>
+    plotly::style(
+        traces = which(anos == ano_atual) - 1,
+        line = list(
+            width = 2.5
+        ),
+        marker = list(
+            size = 7
+        )
+    )
+
+# Layout
+p |>
+    plotly::layout(
+        title = list(
+            text = paste0(
+                "Sazonalidade da Dengue por Ano<br>",
+                "<sub>São José do Rio Preto/SP (2018–", ano_atual, ")</sub>"
+            ),
+            font = list(
+                size = 16,
+                family = "Arial",
+                color = "#2c3e50"
+            )
+        ),
+
+        xaxis = list(
+            title = "Mês",
+            tickangle = -45,
+            font = list(size = 11)
+        ),
+
+        yaxis = list(
+            title = "Número de Notificações",
+            font = list(size = 11)
+        ),
+
+        legend = list(
+            title = list(text = "Ano"),
+            orientation = "h",
+            x = 0.5,
+            xanchor = "center",
+            y = -0.15
+        ),
+
+        hovermode = "x unified",
+
+        plot_bgcolor = "rgba(0,0,0,0)",
+        paper_bgcolor = "rgba(0,0,0,0)"
+    ) |>
+    plotly::config(
+        displayModeBar = TRUE,
+        modeBarButtonsToRemove = c(
+            "pan2d",
+            "select2d",
+            "lasso2d",
+            "autoScale2d"
+        ),
+        displaylogo = FALSE
+    )
 
 ```
 
