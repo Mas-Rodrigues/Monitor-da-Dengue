@@ -932,7 +932,13 @@ map_with_cases |>
                 "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=", 
                 Sys.getenv("CARTO_API_KEY")
             ),
-            attribution = '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>, &copy; <a href="https://carto.com">CARTO</a>',
+            attribution = paste0(
+                '&copy; <a href="', 
+                Sys.getenv("OSM_URL"), 
+                '">OpenStreetMap</a>, &copy; <a href="', 
+                Sys.getenv("CARTO_URL"), 
+                '">CARTO</a>'
+            ),
             options = leaflet::tileOptions(
                 subdomains = "abcd", 
                 maxZoom = 20
